@@ -1,11 +1,12 @@
-import React, { useContext, useCallback } from "react";
+import React, { useContext, useCallback, memo, useMemo } from "react";
 import {
     TableContext,
     CODE,
     OPEN_CELL,
     FLAG_CELL,
-    NOMALIZE_CELL,
-    CLICK_MINE
+    NORMALIZE_CELL,
+    CLICK_MINE,
+    QUESTION_CELL
 } from "./MineSearch";
 
 const getTdStyle = (code) => {
@@ -38,6 +39,7 @@ const getTdStyle = (code) => {
 };
 
 const getTdText = (code) => {
+    console.log('getTdText');
     switch (code) {
         case CODE.NORMAL:
             return '';
@@ -52,15 +54,18 @@ const getTdText = (code) => {
         case CODE.QUESTION:
             return '?';
         default:
-            return '';
+            return code || '';
     }
 };
 
-const Td = ({ rowIndex, cellIndex }) => {
-    const { tableData, dispatch } = useContext(TableContext);
+const Td = memo(({ rowIndex, cellIndex }) => {
+    const { tableData, dispatch, halted } = useContext(TableContext);
 
 
     const onClickTd = useCallback(() => {
+        if (halted) {
+            return;
+        }
         switch (tableData[rowIndex][cellIndex]) {
             case CODE.OPENED:
             case CODE.FLAG_MINE:
@@ -73,11 +78,17 @@ const Td = ({ rowIndex, cellIndex }) => {
                 return;
             case CODE.MINE:
                 dispatch({ type: CLICK_MINE, row: rowIndex, cell: cellIndex });
+                return;
+            default:
+                return;
         }
-    }, [tableData[rowIndex][cellIndex]]);
+    }, [tableData[rowIndex][cellIndex], halted]);
 
     const onRightClickTd = useCallback((e) => {
         e.preventDefault();
+        if (halted) {
+            return;
+        }
         switch (tableData[rowIndex][cellIndex]) {
             case CODE.NORMAL:
             case CODE.MINE:
@@ -89,22 +100,28 @@ const Td = ({ rowIndex, cellIndex }) => {
                 return;
             case CODE.QUESTION_MINE:
             case CODE.QUESTION:
-                dispatch({ type: NOMALIZE_CELL, row: rowIndex, cell: cellIndex });
+                console.log('call normal cell!');
+                dispatch({ type: NORMALIZE_CELL, row: rowIndex, cell: cellIndex });
                 return;
             default:
                 return;
         }
-    }, [tableData[rowIndex][cellIndex]])
+    }, [tableData[rowIndex][cellIndex], halted])
 
+    console.log('td rendered');
+
+    return <RealTd onClickTd={onClickTd} onRightClickTd={onRightClickTd} data={tableData[rowIndex][cellIndex]} />;
+});
+
+const RealTd = memo(({ onClickTd, onRightClickTd, data }) => {
+    console.log('real td rendered');
     return (
         <td
-            style={getTdStyle(tableData[rowIndex][cellIndex])}
+            style={getTdStyle(data)}
             onClick={onClickTd}
             onContextMenu={onRightClickTd}
-        >
-            {getTdText(tableData[rowIndex][cellIndex])}
-        </td>
-    );
-};
+        >{getTdText(data)}</td>
+    )
+});
 
 export default Td;

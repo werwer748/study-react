@@ -2,7 +2,7 @@ const path = require('path');
 const RefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 module.exports = {
-    name: 'minesearch-dev',
+    name: 'react-router-dev',
     mode: 'development', // 실서비스: production
     devtool: 'inline-source-map',
     resolve: {
@@ -26,7 +26,8 @@ module.exports = {
                      '@babel/preset-react'
                 ],
                 plugins: [
-                    'react-refresh/babel' //핫리로드
+                    'react-refresh/babel', //핫리로드
+                    '@babel/plugin-proposal-class-properties',
                 ],
             },
             exclude: path.join(__dirname, 'node_modules'),
@@ -43,6 +44,7 @@ module.exports = {
     devServer: {
         devMiddleware: {publicPath: '/dist'},
         static: { directory: path.resolve(__dirname) },
+        historyApiFallback: true,
         hot: true,
     },
 };
